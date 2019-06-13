@@ -1,0 +1,161 @@
+---
+title: "Alcohol_traditions"
+author: "Alina Dziubko"
+date: '12 июня 2019 г '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(tidyverse)
+library(gapminder)
+library("RColorBrewer")
+library("ggthemes")
+library("ggrepel")
+library("corrplot")
+```
+```{r echo = FALSE}
+data = read.csv("HappinessAlcoholConsumption.csv")
+head(data)
+str(data)
+summary(data)
+```
+Ми беззахисні перед першою чаркою.В дитинстві хтось із родичів обов'язково засуне палець дитини в чарку з горілкою. Головний атрибут столу на дні народження, національні чи релігійні свята – це пляшка чогось міцного. Культура споживання алкоголю формувалася протягом багатьох віків. Біблія, Коран, давньогрецьке та римське мистецтво спонукали людей лояльно ставитись до хмільних напоїв, ба більше розвивати і вдосконалювати це, як окреме ремесло. До чого ж призвела така традиція і з яким звіром нам доводиться боротися в сучасному світі?
+
+## Вживання алкоголю на душу населення 
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=30, fig.height=30, fig.cap="Spirit Per Capita Density Plot"}
+
+ggplot(data, aes(x = "", y = Spirit_PerCapita)) +
+  geom_boxplot(color = "dark grey", fill = "grey", alpha=0.6) +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=20, color="blue", fill="grey") +
+  theme_bw() +
+  theme(text = element_text(family = "Gotham Pro Narrow", size=50)) +
+  theme(legend.position ='none', plot.title = element_text(size=70))+
+  ggtitle("Вживання алкоголю на душу насення у світі") 
+
+```
+
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=30, fig.height=30, fig.cap="Spirit Per Capita Density Plot"}
+
+data %>% 
+  ggplot(aes(x=Spirit_PerCapita)) + 
+  geom_density(fill = "grey", alpha=0.6) +
+  geom_vline(aes(xintercept=mean(Spirit_PerCapita)), color="blue", linetype="dashed", size=2) +
+  theme_bw() +
+  theme(legend.position ='none',axis.title.y = element_text(size=50), axis.text.y = element_text(size = 25),axis.title.x = element_text(size=50),axis.text.x = element_text(size = 45), plot.title = element_text(size=70))+
+  ggtitle('Вживання алкоголю на душу насення у світі')
+
+```
+
+Як бачимо, в багаьох країнах світу люди вживають алкоголь більше за середнє значення. Це пов'язано з багатьма міфами, які насправді спотворюють реальні факти. Наприклад, те, що алкоголь підвищує наш дух і дає відчуття щастя.
+Насправді алкоголь - це депресант. Він пригнічує діяльність головного і спинного мозку. Людям лише здається, що алкоголь їх звеселяє. Насправді вони просто намагаються втекти від проблем. За даними ВООЗ, самогубства серед питущих трапляються у 80 разів частіше, аніж серед прихильників тверезого способу життя.
+
+Країни-лідери у споживанні вина традиційно залишаються Франція, Португалія та Італія. Однак за даними дослідження, проведеного International Journal of Entrepreneurship, кількість французів, які регулярно споживають вино постійно зменшується."Відбулося те, що ми називаємо поступовою ерозією ідентичності вина, і наших священних уявлень про нього, - кажуть автори доповіді Тьєррі Лорі і Паскаль Путе. - Це призвело до змін у споживчих звичках французів протягом трьох поколінь і до різкого зменшення обсягів випитого вина".
+Падіння споживання відбувається також в інших країнах - Італії та Іспанії. Вони також є історичними виробниками вина. Проте, це не вдарило по перспективах експортерів французького вина, які продовжують утримувати свої позиції за кордоном.
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=40, fig.height=40}
+
+data %>%
+  group_by(Country) %>%
+  summarise(avg_Wine_PerCapita = mean(Wine_PerCapita)) %>%
+  top_n(15)%>%
+  ggplot(aes(x=reorder(factor(Country), avg_Wine_PerCapita), y=avg_Wine_PerCapita, fill = avg_Wine_PerCapita)) + 
+  geom_bar(stat = "identity", position = "dodge",colour = "red")+
+  scale_colour_gradient(low = "red", high= "darkred")+
+  xlab("Country") + 
+  ylab("Mean Wine Per Capita") +
+  theme_bw()+
+  theme(legend.position ='none',axis.title.y = element_text(size=50), axis.text.y = element_text(size = 50), axis.title.x = element_text(size=50),axis.text.x = element_text(size = 50), plot.title = element_text(size=70)) +
+  geom_text(aes(label = avg_Wine_PerCapita), hjust = -0.3, size = 10.5) +
+  ggtitle("Країни, які найбільше споживають вино ") + 
+  coord_flip()
+
+```
+
+Ми також дізналися, які країни найбільше п'ють міцні напої.
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=40, fig.height=40}
+
+data %>%
+  group_by(Country) %>%
+  summarise(avg_Spirit_PerCapita = mean(Spirit_PerCapita)) %>%
+  top_n(20) %>%
+  ggplot(aes(x=reorder(factor(Country), avg_Spirit_PerCapita), y=avg_Spirit_PerCapita, fill = avg_Spirit_PerCapita)) + 
+  geom_bar(stat = "identity", position = "dodge",colour = "red")+
+  scale_colour_gradient(low = "red", high= "darkred")+
+  xlab("Country") + 
+  ylab("Mean Spirit Per Capita") +
+  theme(legend.position ='none',axis.title.y = element_text(size=50), axis.text.y = element_text(size = 50), axis.title.x = element_text(size=50),axis.text.x = element_text(size = 50), plot.title = element_text(size=70)) +
+  geom_text(aes(label = avg_Spirit_PerCapita), hjust = -0.3, size = 10.5) +
+  ggtitle("Споживання міцних алкогольних напоїв у світі  ") + 
+  coord_flip()
+
+```
+Лідерами виявилися Білорусь та Росія. В цих країнах найвищий показник споживання міцних алкогольних напоїв у світі.Україна також увійшла в десятку, так званих "питущих країн". І це насправді велика проблема. Адже це призводить до десятків тисяч смертельних наслідків.Медичний журнал Ланцет (The Lancet) опублікував результати наймасштабнішого вивчення наслідків споживання алкоголю, у яких дослідники доходять висновку, що за 2016 рік алкоголь став причиною 2,8 мільйонів смертей у світі і був однією з провідних причин загибелі, хвороб і каліцтв серед людей віком 15-49 років. У цих показниках Україну випереджають лише країни зі значно більшим населенням, зокрема Китай, Індія та Росія.
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=40, fig.height=40, fig.cap="Correlations of the variables"}
+
+corrplot.mixed(cor(
+  data %>% select_if(is.numeric)), lower = "number", upper = "shade", tl.pos = "lt", diag = "n", tl.cex = 2.5, number.cex = 2, cl.cex = 2.5)
+```
+Індекс людського розвитку має найвище співвідношення з оцінкою щастя. Це в два рази перевищує співвідношення змінних, пов'язаних з алкоголем. Те ж саме можна сказати про ВВП країн на душу населення. Як бачимо, на мікро- і на макрорівні щастя корелює з іншими факторами, аніж споживання алкоголю. 
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=40, fig.height=40}
+
+data %>%
+  group_by(Region) %>%
+  summarise(avg_HappinessScore = mean(HappinessScore)) %>%
+  ggplot(aes(x=reorder(factor(Region), avg_HappinessScore), y=avg_HappinessScore, fill = avg_HappinessScore)) + 
+  geom_bar(stat = "identity", position = "dodge",colour = "blue")+
+  scale_colour_gradient(low = "blue", high= "darkblue")+
+  xlab("Region") + 
+  ylab("Mean Happiness Score") +
+theme_bw()+
+   theme(text = element_text(family = "Gotham Pro Narrow", size=50)) +
+  theme(legend.position ='none',axis.title.y = element_text(size=50), axis.text.y = element_text(size = 50), axis.title.x = element_text(size=50),axis.text.x = element_text(size = 50), plot.title = element_text(size=70)) +
+  
+  geom_text(aes(label = avg_HappinessScore), hjust = -0.3, size = 10.5) +
+  ggtitle("Показник щастя за регіонами")+
+   coord_flip()
+```
+
+```{r echo = FALSE, fig.align = 'default', warning = FALSE, fig.width=40, fig.height=40}
+
+data %>%
+  group_by(Country) %>%
+  summarise(avg_HappinessScore = mean(HappinessScore)) %>%
+  top_n(20) %>%
+  ggplot(aes(x=reorder(factor(Country), avg_HappinessScore), y=avg_HappinessScore, fill = avg_HappinessScore)) + 
+  geom_bar(stat = "identity", position = "dodge",colour = "blue")+
+  scale_colour_gradient(low = "blue", high= "darkblue")+
+  xlab("Country") + 
+  ylab("Mean Happiness Score") +
+  theme_bw()+
+   theme(text = element_text(family = "Gotham Pro Narrow", size=50)) +
+  theme(legend.position ='none',axis.title.y = element_text(size=50), axis.text.y = element_text(size = 50), axis.title.x = element_text(size=50),axis.text.x = element_text(size = 50), plot.title = element_text(size=70)) +
+  
+  geom_text(aes(label = avg_HappinessScore), hjust = -0.3, size = 10.5) +
+  ggtitle("ТОП-20 найщасливіших країн світу") + 
+  coord_flip()
+```
+Найщасливіші люди живуть в країнах північного регіону. А данському хюґе (hygge) нам потрібно ще вчитися. Самі жителі Данії кажуть, що хюґе – це мистецтво тепла та душевного  комфорту, відчуття безпеки, спогади про дитинство та тихий ранок у ліжку, смачна їжа. Десь далеко в цьому переліку можна знайти келих  смачного вина в приємній компанії. Але це не означає, що без алкоголю не можна весело і душевно провести дружній вечір. 
+
+На сьогоднішній день алкоголь - це:
+•	90% усіх випадків сексуального насильства
+•	80% випадків першого сексуального досвіду
+•	70% незапланованих вагітностей 
+•	60% усіх випадків передачі ЗПСШ
+•	50% дорожньо-транспортних пригод
+•	50% розпаду сімей 
+•	50% вбивств
+•	25% самогубств
+
+На жаль, наша нація недооцінює згубний вплив алкоголю і продовжує підніматися в рейтингу статистики. За даними Всесвітньої організації охорони здоров’я Україна займає перше місце у світі за рівнем дитячого алкоголізму. 87% українських школярів хоча б раз пили алкогольні напої, 26% – вживають алкоголь кілька разів на місяць.Від цієї залежності починають страждати системи: родина, друзі, партнери. В майбутньому алкоголізм стане замкнутим колом, яке невідомо коли і на якому поколінні замкнеться. 
